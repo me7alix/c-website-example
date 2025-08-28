@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define LOG_LEVEL_ALL
 
@@ -58,6 +59,52 @@ void handler_index(void *ctx, HTTP_Request *req, HTTP_Response *resp) {
 	http_resp_set_body(resp, (uint8_t *)page, strlen(page));
 
 	http_resp_set_status_line(resp, STATUS_OK, "OK");
+}
+
+void handler_post(void *ctx, HTTP_Request *req, HTTP_Response *resp) {
+	IPostStorage *post_storage = (IPostStorage *) ctx;
+
+	size_t tar_cnt = 0, tar_cur = 0;
+	char *tar_tok = strtok(req->target, "/");
+
+	while (!tar_tok) {
+		tar_cnt++;
+		tar_tok = strtok(NULL, "/");
+	}
+
+	if (strcmp(req->method, METHOD_DELETE) == 0) {
+		int id;
+		tar_tok = strtok(req->target, "/");
+		while (!tar_tok) {
+			if (tar_cur++ == tar_cnt - 1) {
+				id = atoi(tar_tok);
+			}
+
+			tar_tok = strtok(NULL, "/");
+		}
+
+		if (id == 0) {
+			http_resp_set_status_line(resp, STATUS_BAD_REQUEST, "post id was not provided");
+			return;
+		}
+
+		int err = post_storage->remove(post_storage, id);
+		if (err != STORAGE_ERR_OK) {
+			if (err == STORAGE_ERR_NOT_FOUND) {
+				http_resp_set_status_line(resp, STATUS_BAD_REQUEST, "post with such id was not found");
+				return;
+			}
+
+			http_resp_set_status_line(resp, STATUS_INTERNAL_SERVER_ERROR, "internal server error");
+			return;
+		}
+
+		http_resp_set_status_line(resp, STATUS_OK, "OK");
+	} if (strcmp(req->method, METHOD_POST) == 0) {
+		
+	} else {
+		http_resp_set_status_line(resp, STATUS_METHOD_NOT_ALLOWED, "method not allowed");
+	}
 }
 
 int main(void) {
