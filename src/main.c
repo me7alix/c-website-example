@@ -18,6 +18,7 @@
 #include "../thirdparty/htmpl.h"
 
 char *tmpl_index(Post *posts, size_t cnt);
+char *tmpl_admin(Post *posts, size_t cnt);
 
 #include "impls.c"
 
@@ -50,7 +51,7 @@ void handler_index(void *ctx, HTTP_Request *req, HTTP_Response *resp) {
 	size_t posts_count;
 
 	int err = post_storage->get_all(post_storage, &posts, &posts_count);
-	if (err != STORAGE_ERR_OK) {
+	if (err != STORAGE_ERR_NONE) {
 		http_resp_set_status_line(resp, STATUS_INTERNAL_SERVER_ERROR, "Internal server error");
 		return;
 	}
@@ -61,35 +62,58 @@ void handler_index(void *ctx, HTTP_Request *req, HTTP_Response *resp) {
 	http_resp_set_status_line(resp, STATUS_OK, "OK");
 }
 
+void handler_admin(void *ctx, HTTP_Request *req, HTTP_Response *resp) {
+	IPostStorage *post_storage = (IPostStorage *) ctx;
+	http_resp_add_header(resp, "Content-Type", CONTENT_TYPE_TEXT_HTML"; charset=utf-8");
+
+	Post *posts;
+	size_t posts_count;
+
+	int err = post_storage->get_all(post_storage, &posts, &posts_count);
+	if (err != STORAGE_ERR_NONE) {
+		http_resp_set_status_line(resp, STATUS_INTERNAL_SERVER_ERROR, "Internal server error");
+		return;
+	}
+
+	char *page = tmpl_admin(posts, posts_count);
+	http_resp_set_body(resp, (uint8_t *)page, strlen(page));
+
+	http_resp_set_status_line(resp, STATUS_OK, "OK");
+}
+
 void handler_post(void *ctx, HTTP_Request *req, HTTP_Response *resp) {
 	IPostStorage *post_storage = (IPostStorage *) ctx;
 
-	size_t tar_cnt = 0, tar_cur = 0;
-	char *tar_tok = strtok(req->target, "/");
+	char buf[256];
+	size_t tar_cnt = 0;
 
-	while (!tar_tok) {
+	memcpy(buf, req->target, sizeof(char) * strlen(req->target));
+	char *tar_tok = strtok(buf, "/");
+
+	while (tar_tok) {
 		tar_cnt++;
 		tar_tok = strtok(NULL, "/");
 	}
 
 	if (strcmp(req->method, METHOD_DELETE) == 0) {
-		int id;
-		tar_tok = strtok(req->target, "/");
-		while (!tar_tok) {
-			if (tar_cur++ == tar_cnt - 1) {
-				id = atoi(tar_tok);
-			}
+		size_t tar_cur = 0; int id;
+		memcpy(buf, req->target, sizeof(char) * strlen(req->target));
+		tar_tok = strtok(buf, "/");
 
+		while (tar_tok) {
+			if (tar_cur++ == tar_cnt - 1)
+				id = atoi(tar_tok);
 			tar_tok = strtok(NULL, "/");
 		}
 
 		if (id == 0) {
+			printf("post id error\n");
 			http_resp_set_status_line(resp, STATUS_BAD_REQUEST, "post id was not provided");
 			return;
 		}
 
 		int err = post_storage->remove(post_storage, id);
-		if (err != STORAGE_ERR_OK) {
+		if (err != STORAGE_ERR_NONE) {
 			if (err == STORAGE_ERR_NOT_FOUND) {
 				http_resp_set_status_line(resp, STATUS_BAD_REQUEST, "post with such id was not found");
 				return;
@@ -100,8 +124,32 @@ void handler_post(void *ctx, HTTP_Request *req, HTTP_Response *resp) {
 		}
 
 		http_resp_set_status_line(resp, STATUS_OK, "OK");
-	} if (strcmp(req->method, METHOD_POST) == 0) {
-		
+	} else if (strcmp(req->method, METHOD_POST) == 0) {
+		char title[256] = {0};
+		char html[2048] = {0};
+
+		for (size_t i = 0; i < req->body_len; i++) {
+			if (req->body[i] == '\n') {
+				memcpy(title, req->body, i * sizeof(char));
+				memcpy(html, req->body + i + 1, (req->body_len - i - 1) * sizeof(char));
+				title[i] = '\0';
+				html[req->body_len - i - 1] = '\0';
+				break;
+			}
+		}
+
+		if (strlen(title) == 0 || strlen(html) == 0) {
+			http_resp_set_status_line(resp, STATUS_BAD_REQUEST, "no post data");
+			return;
+		}
+
+		int err = post_storage->add(post_storage, (Post) {.title = title, .html = html});
+		if (err != STORAGE_ERR_NONE) {
+			http_resp_set_status_line(resp, STATUS_INTERNAL_SERVER_ERROR, "internal server error");
+			return;
+		}
+
+		http_resp_set_status_line(resp, STATUS_OK, "OK");
 	} else {
 		http_resp_set_status_line(resp, STATUS_METHOD_NOT_ALLOWED, "method not allowed");
 	}
@@ -115,14 +163,15 @@ int main(void) {
 		LOG_FATAL("database creating error\n");
 	}
 
-	if (post_storage->init(post_storage) != STORAGE_ERR_OK) {
+	if (post_storage->init(post_storage) != STORAGE_ERR_NONE) {
 		LOG_FATAL("database init error\n");
 	}
 
 	HTTP_Server serv = http_server_create(config.port);
 
 	http_server_handle(&serv, "/", handler_index, post_storage);
-	http_server_handle(&serv, "/post", handler_index, post_storage);
+	http_server_handle(&serv, "/post", handler_post, post_storage);
+	http_server_handle(&serv, "/admin", handler_admin, post_storage);
 
 	if (http_server_serve_file(&serv, "/style.css", CONTENT_TYPE_TEXT_CSS, "./files/style.css") != 0) {
 		LOG_ERROR("failed to register /style.css\n");

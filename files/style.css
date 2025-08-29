@@ -6,6 +6,11 @@ body {
   font-size: 1.3em;
 }
 
+input, textarea, button {
+	background-color: black;
+	color: white;
+}
+
 ul {
   list-style-type: square;
 }

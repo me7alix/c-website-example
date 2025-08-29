@@ -33,7 +33,7 @@ int get_posts(sqlite3 *db, const char *sql, Post **posts, size_t *out_count) {
 
 	sqlite3_finalize(stmt);
 
-	return STORAGE_ERR_OK;
+	return STORAGE_ERR_NONE;
 }
 
 int sqlite_post_storage_init(IPostStorage *self) {
@@ -52,7 +52,7 @@ int sqlite_post_storage_init(IPostStorage *self) {
 		return STORAGE_ERR_INTERNAL;
 	}
 
-	return STORAGE_ERR_OK;
+	return STORAGE_ERR_NONE;
 }
 
 int sqlite_post_storage_get(IPostStorage *self, int id, Post *post) {
@@ -64,7 +64,7 @@ int sqlite_post_storage_get(IPostStorage *self, int id, Post *post) {
 
 	Post *p;
 	int err = get_posts(s->db, buf, &p, &out_count);
-	if (err != STORAGE_ERR_OK) {
+	if (err != STORAGE_ERR_NONE) {
 		return err;
 	}
 
@@ -73,7 +73,7 @@ int sqlite_post_storage_get(IPostStorage *self, int id, Post *post) {
 	}
 
 	*post = *p;
-	return STORAGE_ERR_OK;
+	return STORAGE_ERR_NONE;
 }
 
 int sqlite_post_storage_get_all(IPostStorage *self, Post **posts, size_t *out_count) {
@@ -93,7 +93,7 @@ int sqlite_post_storage_add(IPostStorage *self, Post post) {
 		return STORAGE_ERR_INTERNAL;
 	}
 
-	return STORAGE_ERR_OK;
+	return STORAGE_ERR_NONE;
 }
 
 int sqlite_post_storage_remove(IPostStorage *self, int id) {

@@ -1,0 +1,57 @@
+tmpl_admin(Post *posts, size_t cnt)
+
+<!DOCTYPE html>
+<head>
+	<title>me7alix' website</title> 
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<script>
+		function postSend() {
+			let title = document.getElementById('title').value;
+			let html = document.getElementById('html').value;
+
+		    fetch('/post', {
+				method: 'POST',
+				headers: { 'Content-Type': 'text/plain' },
+				body: title+'\n'+html
+			}).then(resp => { location.reload() });
+		}
+
+		function postRemove(id) {
+		    fetch('/post/'+id, {
+				method: 'DELETE'
+			}).then(resp => { location.reload() });
+		}
+	</script>
+
+
+	<div id="main">
+		<h2>Blog posts</h2>
+		$ {
+			for (size_t i = 0; i < cnt; i++) {
+				HTML(`
+				<div>
+					<h3>%s</h3>
+					%s
+					<button onclick="postRemove('%d')">Remove</button>
+				</div>
+				`, posts[i].title, posts[i].html, posts[i].id);
+			}
+			
+			if (cnt == 0) {
+				HTML("<h3>There are no posts here yet</h3>");
+			}
+		}
+
+	
+		<h2>New post</h2>
+		<p>Title</p>
+		<input id="title" type="text" />
+		<p>Body</p>
+		<textarea id="html"></textarea>
+		<br/>
+		<button onclick="postSend()">Add</button>
+	</div>
+</body>
+</html>

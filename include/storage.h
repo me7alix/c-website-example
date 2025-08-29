@@ -6,7 +6,7 @@
 #include "post.h"
 
 typedef enum {
-	STORAGE_ERR_OK,
+	STORAGE_ERR_NONE,
 	STORAGE_ERR_NOT_FOUND,
 	STORAGE_ERR_INTERNAL,
 } StorageError;

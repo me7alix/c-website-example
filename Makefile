@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -Wall
+CFLAGS = -std=c99 -Wall -ggdb
 
 build:
 	mkdir -p build
