@@ -32,12 +32,11 @@ int get_posts(sqlite3 *db, const char *sql, Post **posts, size_t *out_count) {
 	}
 
 	sqlite3_finalize(stmt);
-
 	return STORAGE_ERR_NONE;
 }
 
-int sqlite_post_storage_init(IPostStorage *self) {
-	PostStorage_SQLite *s = (PostStorage_SQLite *) self;
+int sqlite_post_storage_init(void *self) {
+	PostStorage_SQLite *s = self;
 
 	const char *sql_create =
 		"CREATE TABLE IF NOT EXISTS posts("
@@ -55,11 +54,11 @@ int sqlite_post_storage_init(IPostStorage *self) {
 	return STORAGE_ERR_NONE;
 }
 
-int sqlite_post_storage_get(IPostStorage *self, int id, Post *post) {
+int sqlite_post_storage_get(void *self, int id, Post *post) {
 	char buf[256];
 	size_t out_count;
 
-	PostStorage_SQLite *s = (PostStorage_SQLite *) self;
+	PostStorage_SQLite *s = self;
 	sprintf(buf, "SELECT * FROM posts WHERE id = %d", id);
 
 	Post *p;
@@ -76,13 +75,13 @@ int sqlite_post_storage_get(IPostStorage *self, int id, Post *post) {
 	return STORAGE_ERR_NONE;
 }
 
-int sqlite_post_storage_get_all(IPostStorage *self, Post **posts, size_t *out_count) {
+int sqlite_post_storage_get_all(void *self, Post **posts, size_t *out_count) {
 	PostStorage_SQLite *s = (PostStorage_SQLite *) self;
 	return get_posts(s->db, "SELECT * FROM posts", posts, out_count);
 }
 
-int sqlite_post_storage_add(IPostStorage *self, Post post) {
-	PostStorage_SQLite *s = (PostStorage_SQLite *) self;
+int sqlite_post_storage_add(void *self, Post post) {
+	PostStorage_SQLite *s = self;
 
 	char sql_insert_buf[256], *errMsg;
 	sprintf(sql_insert_buf, "INSERT INTO posts (title, html) VALUES ('%s', '%s');", post.title, post.html);
@@ -96,8 +95,8 @@ int sqlite_post_storage_add(IPostStorage *self, Post post) {
 	return STORAGE_ERR_NONE;
 }
 
-int sqlite_post_storage_remove(IPostStorage *self, int id) {
-	PostStorage_SQLite *s = (PostStorage_SQLite *) self;
+int sqlite_post_storage_remove(void *self, int id) {
+	PostStorage_SQLite *s = self;
 
 	char sql_insert_buf[256], *errMsg;
 	sprintf(sql_insert_buf, "DELETE FROM posts WHERE id = %d;", id);
@@ -126,5 +125,5 @@ IPostStorage *sqlite_post_storage_create(const char *db_path) {
 	res->base.get_all = sqlite_post_storage_get_all;
 	res->base.remove = sqlite_post_storage_remove;
 
-	return (IPostStorage *) res;
+	return (IPostStorage*) res;
 }

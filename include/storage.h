@@ -11,12 +11,12 @@ typedef enum {
 	STORAGE_ERR_INTERNAL,
 } StorageError;
 
-typedef struct IPostStorage {
-	int (*init)(struct IPostStorage *self);
-	int (*add)(struct IPostStorage *self, Post post);
-	int (*get)(struct IPostStorage *self, int id, Post *post);
-	int (*get_all)(struct IPostStorage *self, Post **posts, size_t *out_count);
-	int (*remove)(struct IPostStorage *self, int id);
+typedef struct {
+	int (*init)(void *self);
+	int (*add)(void *self, Post post);
+	int (*get)(void *self, int id, Post *post);
+	int (*get_all)(void *self, Post **posts, size_t *out_count);
+	int (*remove)(void *self, int id);
 } IPostStorage;
 
 typedef struct {

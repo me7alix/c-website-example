@@ -35,8 +35,7 @@ void tmpls_builder_write(HTMPL_StringBuilder *sb, const char *filepath);
 void tmpls_builder_destroy(HTMPL_StringBuilder *sb);
 void tmpls_builder_compile_template(
 		HTMPL_StringBuilder *tmpls_builder,
-		const char *input_file
-		);
+		const char *input_file);
 
 #endif // HTMPL_H
 
@@ -224,9 +223,9 @@ void tmpls_builder_compile_template(
 				br_cnt = 0;
 
 				htmpl_sb_append_str(&tmpl, "htmpl_sb_append_str(&l_html, \"");
-				htmpl_sb_append_str(&tmpl, html.str);	
+				htmpl_sb_append_str(&tmpl, html.str);
 				htmpl_sb_append_str(&tmpl, "\");");
-				htmpl_sb_reset(&html);	
+				htmpl_sb_reset(&html);
 				break;
 
 			case '{':
@@ -265,7 +264,7 @@ void tmpls_builder_compile_template(
 
 	if (!c_code) {
 		htmpl_sb_append_str(&tmpl, "htmpl_sb_append_str(&l_html, \"");
-		htmpl_sb_append_str(&tmpl, html.str);	
+		htmpl_sb_append_str(&tmpl, html.str);
 		htmpl_sb_append_str(&tmpl, "\");");
 		htmpl_sb_reset(&html);
 	}

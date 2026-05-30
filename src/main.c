@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define LOG_LEVEL_ALL
 
@@ -24,7 +25,8 @@ char *tmpl_admin(Post *posts, size_t cnt);
 
 typedef struct {
 	char *db_path;
-	short port;
+	short main_port;
+	short admin_port;
 } ServerConf;
 
 ServerConf load_config(const char *path) {
@@ -32,12 +34,18 @@ ServerConf load_config(const char *path) {
 	ServerConf config = {0};
 
 	for (size_t i = 0; i < conf.count; i++) {
-		if (strcmp(conf.keys[i], "DB_PATH") == 0) config.db_path = http_strdup(conf.values[i]);
-		else if (strcmp(conf.keys[i], "PORT") == 0) config.port = atoi(conf.values[i]);
+		if (strcmp(conf.keys[i], "DB_PATH") == 0) {
+			config.db_path = http_strdup(conf.values[i]);
+		} else if (strcmp(conf.keys[i], "MAIN_PORT") == 0) {
+			config.main_port = atoi(conf.values[i]);
+		} else if (strcmp(conf.keys[i], "ADMIN_PORT") == 0) {
+			config.admin_port = atoi(conf.values[i]);
+		}
 	}
 
-	if (config.port == 0 || !config.db_path)
+	if (config.main_port == 0 || config.admin_port == 0 || !config.db_path) {
 		LOG_FATAL("config loading error\n");
+	}
 
 	conf_free(conf);
 	return config;
@@ -167,16 +175,26 @@ int main(void) {
 		LOG_FATAL("database init error\n");
 	}
 
-	HTTP_Server serv = http_server_create(config.port);
+	HTTP_Server main  = http_server_create(config.main_port);
+	HTTP_Server admin = http_server_create(config.admin_port);
 
-	http_server_handle(&serv, "/", handler_index, post_storage);
-	http_server_handle(&serv, "/post", handler_post, post_storage);
-	http_server_handle(&serv, "/admin", handler_admin, post_storage);
+	http_server_handle(&main,  "/",      handler_index, post_storage);
+	http_server_handle(&admin, "/post",  handler_post,  post_storage);
+	http_server_handle(&admin, "/admin", handler_admin, post_storage);
 
-	if (http_server_serve_file(&serv, "/style.css", CONTENT_TYPE_TEXT_CSS, "./files/style.css") != 0) {
+	if (http_server_serve_file(&main, "/style.css", CONTENT_TYPE_TEXT_CSS, "./files/style.css") != 0) {
 		LOG_ERROR("failed to register /style.css\n");
 	}
 
-	http_server_run(&serv);
+	if (http_server_serve_file(&admin, "/style.css", CONTENT_TYPE_TEXT_CSS, "./files/style.css") != 0) {
+		LOG_ERROR("failed to register /style.css\n");
+	}
+
+	if (fork()) {
+		http_server_run(&main);
+	} else {
+		http_server_run(&admin);
+	}
+
 	return 0;
 }

@@ -2,7 +2,7 @@ tmpl_admin(Post *posts, size_t cnt)
 
 <!DOCTYPE html>
 <head>
-	<title>me7alix' website</title> 
+	<title>me7alix' website</title>
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -38,13 +38,13 @@ tmpl_admin(Post *posts, size_t cnt)
 				</div>
 				`, posts[i].title, posts[i].html, posts[i].id);
 			}
-			
+
 			if (cnt == 0) {
 				HTML("<h3>There are no posts here yet</h3>");
 			}
 		}
 
-	
+
 		<h2>New post</h2>
 		<p>Title</p>
 		<input id="title" type="text" />
