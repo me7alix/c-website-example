@@ -190,10 +190,14 @@ int main(void) {
 		LOG_ERROR("failed to register /style.css\n");
 	}
 
-	if (fork()) {
-		http_server_run(&main);
-	} else {
+	pid_t pid = fork();
+	if (pid < 0) {
+		perror("fork");
+		exit(EXIT_FAILURE);
+	} else if (pid == 0) {
 		http_server_run(&admin);
+	} else {
+		http_server_run(&main);
 	}
 
 	return 0;
