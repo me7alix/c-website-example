@@ -30,7 +30,7 @@ tmpl_index(Post *posts, size_t cnt)
 		  <li>Low level programming in C</li>
 		</ul>
 		<h2>Github stats</h2>
-		  <a href="https://awesome-github-stats.azurewebsites.net/index.html??cardType=level-alternate&theme=highcontrast&fontFamily=&preferLogin=false"><img alt="me7alix's GitHub Stats" src="https://awesome-github-stats.azurewebsites.net/user-stats/me7alix?cardType=level-alternate&theme=highcontrast&fontFamily=&preferLogin=false" /></a>
+			<a href="https://awesome-github-stats.azurewebsites.net/index.html??cardType=level&fontFamily=&showIcons=false&preferLogin=false&Text=EEEEEE&Background=000000&Title=FF69B4&Border=90EE90&Ring=FF69B4">    <img  alt="me7alix's GitHub Stats" src="https://awesome-github-stats.azurewebsites.net/user-stats/me7alix?cardType=level&fontFamily=&showIcons=false&preferLogin=false&Text=EEEEEE&Background=000000&Title=FF69B4&Border=90EE90&Ring=FF69B4" id="stats" /></a>
 		<h2>Blog posts</h2>
 		$ {
 			for (int i = cnt - 1; i >= 0; i--) {

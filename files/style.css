@@ -44,11 +44,18 @@ a:hover {
   margin-right: 25%;
 }
 
+#stats {
+  width: 60%;
+}
+
 @media (max-aspect-ratio: 1/1) {
   #main {
     margin-left: 1em;
     margin-right: 1em;
-  } 
+  }
+  #stats {
+    width: 100%;
+  }
   body {
     color: rgb(220, 220, 220);
     background: black;
